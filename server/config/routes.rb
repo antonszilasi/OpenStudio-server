@@ -39,7 +39,10 @@ Rails.application.routes.draw do
         get :download_algorithm_results_zip
         get :dencity
         get :download_selected_datapoints
-
+        get :download_BTAP_results_zip
+        get :download_BTAP_error_log
+        get :download_BTAP_simulations
+        
         get :plot_xy_interactive
         post :plot_xy_interactive
       end
