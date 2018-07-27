@@ -18,7 +18,7 @@ else
         ln -s /usr/local/opt/mongodb@3.4/bin/* /usr/local/bin
         unset BUNDLE_GEMFILE
 
-        curl -SLO --insecure https://s3.amazonaws.com/openstudio-builds/$OPENSTUDIO_VERSION/OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_VERSION_SHA-Darwin.zip
+        curl -SLO --insecure https://s3.amazonaws.com/openstudio-builds/_CI/OpenStudio/OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_VERSION_SHA-Darwin.zip
         unzip OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_VERSION_SHA-Darwin.zip
         # Use the install script that is in this repo now, the one on OpenStudio/develop has changed
         sed -i -e "s|REPLACEME|$HOME/openstudio|" ci/travis/install-mac.qs
