@@ -91,7 +91,7 @@ ENV RAILS_ENV $rails_env
 ADD /bin /opt/openstudio/bin
 ADD /server/Gemfile /opt/openstudio/server/Gemfile
 WORKDIR /opt/openstudio/server
-RUN bundle install --jobs=3 --retry=3 $bundle_args
+RUN bundle _${OS_BUNDLER_VERSION}_ install --jobs=3 --retry=3 $bundle_args
 
 # Add the app assets and precompile assets. Do it this way so that when the app changes the assets don't
 # have to be recompiled everytime
