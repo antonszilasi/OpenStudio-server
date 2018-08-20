@@ -177,7 +177,7 @@ if override_dockerhub_repo is not None:
 
 # Check if this version name has already been released
 ami_name = "OpenStudio-Server-Docker-%s%s" % (ami_version, ami_version_ext)
-ec2 = boto3.resource('ec2')
+ec2 = boto3.resource('ec2', region_name='us-east-1')
 for image in ec2.images.filter(Filters=[{'Name': 'name', 'Values': [ami_name]}]).all():
     # I really don't like iterating over this, but it was the easiest. $.count() and len didn't work.
     if image.name == ami_name:
