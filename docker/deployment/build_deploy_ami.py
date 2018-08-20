@@ -362,7 +362,7 @@ ami_entry = {
 
 # We set the AMI as publically available, unless disable_public is true
 if not disable_public:
-    ec2 = boto3.resource('ec2')
+    ec2 = boto3.resource('ec2', region_name='us-east-1')
     image = ec2.Image(ami_id)
     response = image.modify_attribute(LaunchPermission={'Add': [{'Group': 'all'}]})
     if response['ResponseMetadata']['HTTPStatusCode'] is not 200:
