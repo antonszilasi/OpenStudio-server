@@ -60,12 +60,22 @@ local:
   options:
     raise_not_found_error: false
     log_level: :info
+local-test:
+  clients:
+    default:
+      database: <%= ENV['OS_SERVER_DATABASE_NAME'] %>
+      hosts:
+        - localhost:<%= ENV['OS_SERVER_MONGO_PORT'] %>
+      options:
+  options:
+    raise_not_found_error: false
+    log_level: :info
 test:
   clients:
     default:
       database: os_test
       hosts:
-        # For some reason localhost isn't working for mongo anymore
+        # For some reason localhost isn't working for mongo anymore. This is an NREL issue with IT overwriting hosts file
         - 127.0.0.1:27017
       options:
         read:

@@ -1,9 +1,11 @@
 # Docker Compose creates multiple containers on a single machine.
 # run `docker-compose up` to create and run/link the containers
-version: '2'
+version: '3.4'
 services:
   db:
-    image: mongo:latest
+    image: mongo:3.4.10
+  queue:
+    image: redis:4.0.6
   web:
     image: nrel/openstudio-server:latest
     build:
@@ -14,9 +16,13 @@ services:
     environment:
       - CI
       - COVERALLS_REPO_TOKEN
-      - CIRCLECI
+      - TRAVIS=true
+      - TRAVIS_JOB_ID
+      - TRAVIS_BRANCH
+      - TRAVIS_PULL_REQUEST
     links:
       - db
+      - queue
       - rserve
     ports:
       - "8080:80"

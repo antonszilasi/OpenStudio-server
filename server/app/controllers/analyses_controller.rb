@@ -161,6 +161,7 @@ class AnalysesController < ApplicationController
     params[:project_id] = project_id
 
     @analysis = Analysis.new(params)
+    @analysis.save!  # Make sure to save it before processing it further. Rails 5 upgrade issue.
 
     # Need to pull out the variables that are in this analysis so that we can stitch the problem
     # back together when it goes to run
@@ -177,6 +178,7 @@ class AnalysesController < ApplicationController
       end
     end
   end
+
 
   # PUT /analyses/1
   # PUT /analyses/1.json
@@ -229,7 +231,8 @@ class AnalysesController < ApplicationController
     logger.info("action #{params.inspect}")
     @analysis_type = params[:analysis_type].nil? ? 'batch_run' : params[:analysis_type]
 
-    options = params.symbolize_keys # read the defaults from the HTTP request
+    # params is now an object. Call to_h to get all the permitted parameters, and in this case, all of the params.
+    options = params.permit!.to_h
     options[:run_data_point_filename] = params[:run_data_point_filename] if params[:run_data_point_filename]
 
     logger.info("After parsing JSON arguments and default values, analysis will run with the following options #{options}")
@@ -916,33 +919,22 @@ class AnalysesController < ApplicationController
     # Eventually use this where the timestamp is processed as part of the request to save time
     plot_data = if datapoint_id
                   if only_completed_normal
-                    DataPoint.where(analysis_id: analysis, status: 'completed', id: datapoint_id,
-                                  status_message: 'completed normal')
-                             .map_reduce(map, reduce).out(merge: "datapoints_mr_#{analysis.id}")
+                    DataPoint.where(
+                        analysis_id: analysis, status: 'completed', id: datapoint_id, status_message: 'completed normal'
+                    )
                   else
                     DataPoint.where(analysis_id: analysis, id: datapoint_id)
-                             .map_reduce(map, reduce).out(merge: "datapoints_mr_#{analysis.id}")
                   end
                 else
                   if only_completed_normal
                     DataPoint.where(analysis_id: analysis, status: 'completed', status_message: 'completed normal')
-                             .order_by(:created_at.asc).map_reduce(map, reduce)
-                             .out(merge: "datapoints_mr_#{analysis.id}")
+                        .order_by(:created_at.asc)
                   else
-                    DataPoint.where(analysis_id: analysis) .order_by(:created_at.asc).map_reduce(map, reduce)
-                        .out(merge: "datapoints_mr_#{analysis.id}")
+                    DataPoint.where(analysis_id: analysis).order_by(:created_at.asc)
                   end
                 end
 
     logger.info "finished fixing up data: #{Time.now - start_time}"
-
-    # TODO: how to handle to sorting by iteration?
-    # if @analysis.analysis_type == 'sequential_search'
-    #   dps = @analysis.data_points.all.order_by(:iteration.asc, :sample.asc)
-    #   dps = dps.rotate(1) # put the starting point on top
-    # else
-    #   dps = @analysis.data_points.all
-    # end
 
     start_time = Time.now
     logger.info 'mapping variables'
@@ -952,8 +944,19 @@ class AnalysesController < ApplicationController
     logger.info "finished mapping variables: #{Time.now - start_time}"
 
     start_time = Time.now
+    logger.info 'Start map/reduce'
+    # Remove all the old items first
+    Mongoid.default_client.database.collection(:"datapoints_mr_#{analysis.id}").drop
+    plot_data = plot_data.map_reduce(map, reduce).out(replace: "datapoints_mr_#{analysis.id}")
+    # just call the first one so that is flushes the results to the database
+    plot_data.first
+    logger.info "Finished map/reduce: #{Time.now - start_time}"
+
+    # Go query the map reduce results again. For some reason the results of the map/reduce is
+    # limited to only the first 100 documents.
+    start_time = Time.now
     logger.info 'Start as_json'
-    plot_data = plot_data.as_json
+    plot_data = Mongoid.default_client.database.collection(:"datapoints_mr_#{analysis.id}").find.as_json
     logger.info "Finished as_json: #{Time.now - start_time}"
 
     start_time = Time.now
@@ -1069,6 +1072,6 @@ class AnalysesController < ApplicationController
   private
 
   def analysis_params
-    params.require(:analysis).permit!
+    params.require(:analysis).permit!.to_h
   end
 end

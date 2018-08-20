@@ -1,9 +1,9 @@
 # Version used to deploy the latest version of the server from docker hub.
 
-version: '3'
+version: '3.4'
 services:
   db:
-    image: mongo:latest
+    image: mongo:3.4.10
     ports:
       - "27017:27017"
     deploy:
@@ -11,8 +11,12 @@ services:
         constraints:
           - node.role == manager
       resources:
-        reservations:
+        limits:
           cpus: "1"
+  queue:
+      image: redis:4.0.6
+      ports:
+        - "6379:6379"
   web:
     image: nrel/openstudio-server:latest
     ports:
@@ -29,28 +33,33 @@ services:
         constraints:
           - node.role == manager
       resources:
-        reservations:
+        limits:
           cpus: "1"
+    command: /usr/local/bin/start-server
   web-background:
     image: nrel/openstudio-server:latest
     environment:
       - OS_SERVER_NUMBER_OF_WORKERS=${OS_SERVER_NUMBER_OF_WORKERS}
+      - QUEUES=background,analyses
     volumes:
       - osdata:/mnt/openstudio
-    command: bin/delayed_job -i server --queues=analyses,background run
     depends_on:
       - db
+      - queue
       - web
     deploy:
       placement:
         constraints:
           - node.role == manager
       resources:
-        reservations:
+        limits:
           cpus: "1"
+    command: /usr/local/bin/start-web-background
   worker:
     image: nrel/openstudio-server:latest
-    command: bin/delayed_job -i worker --queue=simulations run
+    environment:
+      - QUEUES=simulations
+      - COUNT=1
     volumes:
       - /mnt/openstudio
     depends_on:
@@ -60,8 +69,9 @@ services:
       - rserve
     deploy:
       resources:
-        reservations:
-          cpus: "0.99"
+        limits:
+          cpus: "1"
+    command: /usr/local/bin/start-workers
   rserve:
     image: nrel/openstudio-rserve:latest
     volumes:
@@ -75,7 +85,7 @@ services:
         constraints:
           - node.role == manager
       resources:
-        reservations:
+        limits:
           cpus: "1"
 volumes:
   osdata:
