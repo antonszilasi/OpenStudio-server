@@ -33,5 +33,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # *******************************************************************************
 
-module ParetosHelper
+# TODO: catch if Resque is loaded
+Resque.before_first_fork do
+  # TODO: How to get the worker information?
+  ComputeNode.register_worker('localhost')
 end
