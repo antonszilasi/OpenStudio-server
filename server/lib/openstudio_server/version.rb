@@ -34,6 +34,6 @@
 # *******************************************************************************
 
 module OpenstudioServer
-    VERSION = '2.5.0'.freeze
-  VERSION_EXT = ''.freeze # with preceding - or +
+  VERSION = '2.5.0'.freeze
+  VERSION_EXT = '-pnw0'.freeze # with preceding - or +
 end
