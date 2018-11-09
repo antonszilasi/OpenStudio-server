@@ -273,7 +273,12 @@ class AnalysisLibrary::Rgenoud < AnalysisLibrary::Base
             rails_host = "#{APP_CONFIG['os_server_host_url']}"
             r_scripts_path = "#{APP_CONFIG['r_scripts_path']}"
             rails_exit_guideline_14 = "#{@analysis.exit_on_guideline_14}"
-            source(paste(r_scripts_path,'/rgenoud.R',sep=''))
+            #source(paste(r_scripts_path,'/rgenoud.R',sep=''))
+            call_rgenoud <- try(source(paste(r_scripts_path,'/rgenoud.R',sep='')))
+            print(paste("inherit try-error:",inherits(call_rgenoud,'try-error')))
+            print(paste("class call_rgenoud:",class(call_rgenoud)))
+            print(paste("call_rgenoud:",call_rgenoud))
+            print("finished rgenoud.R script")
           }
         end
         logger.info 'Returned from rserve rgenound block'
@@ -284,6 +289,7 @@ class AnalysisLibrary::Rgenoud < AnalysisLibrary::Base
 
     rescue StandardError, ScriptError, NoMemoryError => e
       log_message = "#{__FILE__} failed with #{e.message}, #{e.backtrace.join("\n")}"
+      logger.info(log_message)
       logger.error log_message
       @analysis.status_message = log_message
       @analysis.save!

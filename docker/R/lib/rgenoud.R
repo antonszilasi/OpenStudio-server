@@ -160,8 +160,25 @@ if (gradientcheck == 1) {gradientcheck = TRUE} else {gradientcheck = FALSE}
 print(paste("gradientcheck:", gradientcheck))
 
 results <- NULL
-try(results <- genoud(fn=f, nvars=length(varMin), gr=vectorGradient, pop.size=popSize, BFGSburnin=BFGSburnin, max.generations=gen, Domains=varDom, boundary.enforcement=boundaryEnforcement, print.level=printLevel, cluster=cl, BFGS=BFGS, solution.tolerance=solutionTolerance, wait.generations=waitGenerations, control=list(trace=6, factr=factr, maxit=maxit, pgtol=pgtol), debug=r_genoud_debug_flag, P1=50, P2=50, P3=50, P4=50, P5=50, P6=50, P7=50, P8=50, P9=0, MemoryMatrix=MM, balance=balance, gradient.check=gradientcheck), silent=FALSE)
-
+#try(results <- genoud(fn=f, nvars=length(varMin), gr=vectorGradient, pop.size=popSize, BFGSburnin=BFGSburnin, max.generations=gen, Domains=varDom, boundary.enforcement=boundaryEnforcement, print.level=printLevel, cluster=cl, BFGS=BFGS, solution.tolerance=solutionTolerance, wait.generations=waitGenerations, control=list(trace=6, factr=factr, maxit=maxit, pgtol=pgtol), debug=r_genoud_debug_flag, P1=50, P2=50, P3=50, P4=50, P5=50, P6=50, P7=50, P8=50, P9=0, MemoryMatrix=MM, balance=balance, gradient.check=gradientcheck), silent=FALSE)
+genoud_out <- tryCatch(results <- genoud(fn=f, nvars=length(varMin), gr=vectorGradient, pop.size=popSize, BFGSburnin=BFGSburnin, max.generations=gen, Domains=varDom, boundary.enforcement=boundaryEnforcement, print.level=printLevel, cluster=cl, BFGS=BFGS, solution.tolerance=solutionTolerance, wait.generations=waitGenerations, control=list(trace=6, factr=factr, maxit=maxit, pgtol=pgtol), debug=r_genoud_debug_flag, P1=50, P2=50, P3=50, P4=50, P5=50, P6=50, P7=50, P8=50, P9=0, MemoryMatrix=MM, balance=balance, gradient.check=gradientcheck),
+         error = function(c) "error genoud",
+         warning = function(c) "warning genoud",
+         message = function(c) "message genoud",
+         interrupt = function(c) "interrupt genoud" )
+#print(paste("cl():",print(cl)))
+#conns <- showConnections()
+#print(paste("showConnections:",conns))
+#print("stopCluster()")
+#sc <- tryCatch(stopCluster(cl),
+#               error = function(c) "error stop cluster",
+#               warning = function(c) "warning stop cluster",
+#               message = function(c) "message stop cluster",
+#               interrupt = function(c) "interrupt stop cluster" )
+#print(paste("class sc:",class(sc)))
+#print(paste("sc:",sc))
+print(paste("class genoud_out:",class(genoud_out)))
+print(paste("genoud_out:",genoud_out))
 # TODO: how to get best result back in docker space? API? What is the server? 
 #print(paste("scp command:",scp))
 #print(paste("scp command:",scp2))
@@ -188,20 +205,27 @@ print(paste("whoami:", whoami))
 #Rlog[grep('vartypes:',Rlog)]
 #Rlog[grep('varnames:',Rlog)]
 #Rlog[grep('<=',Rlog)]
-print(paste("popsize:",results$pop.size))
-print(paste("peakgeneration:",results$peakgeneration))
-print(paste("generations:",results$generations))
-print(paste("gradients:",results$gradients))
-print(paste("par:",results$par))
-print(paste("value:",results$value))
-flush.console()
-results_filename <- paste(analysis_dir,'/results.R',sep='')
-save(results, file=results_filename)
+if (!is.null(results)) {
+  print(paste("results:",results))
+  print(paste("popsize:",results$pop.size))
+  print(paste("peakgeneration:",results$peakgeneration))
+  print(paste("generations:",results$generations))
+  print(paste("gradients:",results$gradients))
+  print(paste("par:",results$par))
+  print(paste("value:",results$value))
+  flush.console()
+  results_filename <- paste(analysis_dir,'/results.R',sep='')
+  save(results, file=results_filename)
+}
 bestresults_filename <- paste(analysis_dir,'/best_result.json',sep='')
 if (!file.exists(bestresults_filename) && !is.null(results$par)) {
   #write final params to json file
+  print("writing best_result.json")
   answer <- paste('{',paste('"',gsub(".","|",varnames, fixed=TRUE),'"',': ',results$par,sep='', collapse=','),'}',sep='')
   write.table(answer, file=bestresults_filename, quote=FALSE,row.names=FALSE,col.names=FALSE)
   convergenceflag <- paste('{',paste('"',"exit_on_guideline_14",'"',': ',"false",sep='', collapse=','),'}',sep='')
   write(convergenceflag, file=paste(analysis_dir,"/convergence_flag.json",sep=''))
 }
+print("garbage collection end of rgenoud.R")
+temp <- gc()
+print(paste('gc():',temp))
