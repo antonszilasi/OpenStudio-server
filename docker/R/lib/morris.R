@@ -153,6 +153,14 @@ m1 <- as.list(data.frame(t(m$X)))
 if (debug_messages == 1) {
   print(paste("m1:",m1))
 }
+print(paste("length(m1):",length(m1)))
+print(paste("length(unique(m1)):",length(unique(m1))))
+if (length(unique(m1)) != length(m1)) {
+  print("There are non-unique datapoints being requested. removing deplicate datapoints")
+  m1 <- unique(m1)
+  print(paste("length(m1):",length(m1)))
+  print(paste("length(unique(m1)):",length(unique(m1))))
+}
 if (check_boundary == 1) {
   print("check bounds")
   boundary_check <- logical(ncol(vars))
