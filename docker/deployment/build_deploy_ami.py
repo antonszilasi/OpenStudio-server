@@ -150,7 +150,7 @@ defaults = {
     'docker_version': docker_version,
     'version': ami_version,
     'ami_version_extension': ami_version_ext,
-    'dockertag_ext': ami_version_ext
+    'dockertag_ext': ''
 }
 if generated_by is not 'NREL-CI':
     if verbose:

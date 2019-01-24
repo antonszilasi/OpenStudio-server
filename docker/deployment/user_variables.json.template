@@ -1,6 +1,6 @@
 {
   "version": "2.4.0",
   "ami_version_extension": "-rc0",
-  "docker_version": "17.09.1",
+  "docker_version": "18.09.1",
   "generated_by": "Your Name Here"
 }
