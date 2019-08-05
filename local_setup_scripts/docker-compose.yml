@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   db:
-    image: 127.0.0.1:5000/mongo
+    image: mongo:3.4.10
     ports:
       - "27017:27017"
     volumes:
@@ -14,7 +14,7 @@ services:
         reservations:
           cpus: "${AWS_MONGO_CORES}"
   queue:
-    image: 127.0.0.1:5000/redis
+    image: redis:4.0.6
     ports:
       - "6379:6379"
     deploy:
@@ -25,7 +25,7 @@ services:
         reservations:
           cpus: "1"
   web:
-    image: 127.0.0.1:5000/openstudio-server
+    image: nrel/openstudio-server:3-prerelease-rc2-2.8.1
     ports:
       - "8080:80"
       - "80:80"
@@ -49,7 +49,7 @@ services:
           cpus: "${AWS_WEB_CORES}"
     command: /usr/local/bin/start-server
   web-background:
-    image: 127.0.0.1:5000/openstudio-server
+    image: nrel/openstudio-server:3-prerelease-rc2-2.8.1
     environment:
       - OS_SERVER_NUMBER_OF_WORKERS=${AWS_OS_SERVER_NUMBER_OF_WORKERS}
       - QUEUES=background,analyses
@@ -68,7 +68,7 @@ services:
           cpus: "1"
     command: /usr/local/bin/start-web-background
   worker:
-    image: 127.0.0.1:5000/openstudio-server
+    image: nrel/openstudio-server:3-prerelease-rc2-2.8.1
     environment:
       - QUEUES=simulations
       - COUNT=1
@@ -86,7 +86,7 @@ services:
           cpus: "1"
     command: /usr/local/bin/start-workers
   rserve:
-    image: 127.0.0.1:5000/openstudio-rserve
+    image: nrel/openstudio-rserve:3-prerelease-rc2-2.8.1
     volumes:
       - osdata:/mnt/openstudio
     depends_on:
