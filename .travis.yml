@@ -75,7 +75,7 @@ jobs:
       # This change must be made in combination with a modification to
       # deployment/scripts/deploy_docker.sh, as indicated in comments for that file.
       # Full documentation at https://github.com/NREL/OpenStudio-server/wiki/Contributor-Docs:-Building-and-Publishing-Docker-images
-      if: branch = develop3
+      if: branch = docker-deployment
       os: linux
       sudo: required
       dist: bionic
