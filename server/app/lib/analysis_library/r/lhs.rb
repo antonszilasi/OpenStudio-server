@@ -237,13 +237,25 @@ module AnalysisLibrary::R
     end
 
     private
-
+    
+    #tmpname was removed in ruby 2.5 so add similiar here
+    def tmpname(prefix, suffix)
+      prefix = (String.try_convert(prefix) or
+        raise ArgumentError, "unexpected prefix: #{prefix.inspect}")
+      suffix &&= (String.try_convert(suffix) or
+        raise ArgumentError, "unexpected suffix: #{suffix.inspect}")
+      t = Time.now.strftime("%Y%m%d")
+      path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}".dup
+      path << suffix if suffix
+      path
+    end
+    
     # Plot the sample and save it to the Preflight Image model
     def plot_samples(variable, samples)
       logger.info "Creating image for #{variable.name} with samples #{samples}"
       save_file_name = nil
       if samples && samples.count > 0
-        save_file_name = "#{APP_CONFIG['server_asset_path']}/R/#{Dir::Tmpname.make_tmpname(['r_samples_plot', '.png'], nil)}"
+        save_file_name = "#{APP_CONFIG['server_asset_path']}/R/#{tmpname('r_samples_plot', '.png')}"
         logger.info("R image filename is #{save_file_name}")
         # If running on Docker, then use type='cairo' to create PNG (since it is headless and cairo is installed)
         # png_type = Rails.env =~ /docker/ ? ', type="cairo"' : ''
